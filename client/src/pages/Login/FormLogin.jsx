@@ -102,7 +102,6 @@ const FormLogin = () => {
         </form>
         <button type='submit' className="btn btn-primary mt-3" onClick={handleLogin}>Ingresar</button>
        
-
         <p>¿No tienes una cuenta?</p>
         <button className='btn btn-secondary' onClick={navigateRegister}>Registrarse</button>
         

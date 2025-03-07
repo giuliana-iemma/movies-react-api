@@ -2,7 +2,9 @@ import { useContext, useState} from 'react'
 import axios from "axios"
 import { AuthContext } from '../../context/AuthContext'
 import {useNavigate} from 'react-router-dom'
-
+import { Input } from '../../components/Input'
+import { Textarea } from '../../components/Textarea'
+import { Button } from '../../components/Button'
 
 const AddMovie = () => {
   const navigate = useNavigate(); //Para volver a películas
@@ -14,7 +16,7 @@ const AddMovie = () => {
       genre: [],
       platforms: [],
   })
-  
+
   const [deletedGenres, setDeletedGenres] = useState ([])
   const [newGenre, setNewGenre] = useState ('') // Estado temporal para el género nuevo
   const [newPlatformName, setNewPlatformName] =useState(''); //Estado para el input de name de la nueva plataforma
@@ -95,7 +97,7 @@ const handleAdd = async (e) =>{
     e.preventDefault();
     e.stopPropagation();
 
-    console.log(newGenre)
+    // console.log(newGenre)
     const genreName = newGenre.trim();
 
     // Verificar que el género no esté vacío y que no se haya agregado previamente
@@ -167,37 +169,41 @@ return (
     <form onSubmit={handleAdd}> 
         {/* Title */}
         <div>
-            <label className='form-label'>Título</label>
-          <input type="text" className='form-control' name='title' value={movie.title} onChange={handleChange} />
+            <Input 
+              label="Título"
+              type="text"
+              className="form-control"
+              name="title"
+              value={movie.title}
+              onChange={handleChange}
+              />
         </div>
 
         {/* Description */}
         <div>
-            <label className='form-label'>Descripción</label>
-            <textarea
-            className="form-control"
-            name="description"
-            value={movie.description}  
-            onChange={handleChange} 
-          />
+            <Textarea
+              label="Descripción"
+              className="form-control"
+              name="description"
+              value={movie.description}  
+              onChange={handleChange} 
+            />
         </div>
 
         {/* Genres */}
         <div className='mt-3'>  
         <h2 className='edit-title'>Géneros</h2>
         {movie.genre && movie.genre.length > 0 ? (
-          movie.genre.map((genre) => {
+          movie.genre.map((genre, index) => {
             return (
               <div 
               className={`genre-tag d-flex flex-row mt-1`} /* Si esta dentro de los géneros eliminados, ponemos la clase removed. sino no */
-              key={genre._id}>
+              key={index}>
 
-                <p className="d-block genre-tag-text">{genre.name}</p>
+                <p className="d-block genre-tag-text">{genre.name}{genre._id}</p>
 
                 {/* Botón para eliminar el género */}
-                <button onClick={(e) => handleDeleteGenre(e, genre)} className="genre-btn">
-                  x
-                </button>
+                <Button onClick={(e) => handleDeleteGenre(e, genre)} className="genre-btn" label="x"/>
               </div>
             );
           })
@@ -207,8 +213,8 @@ return (
           
           {/* Agregar género */}
           <div className='mt-3 container-add'>
-            <input className='input-add' type="text" /* onChange={(e)=> setNewGenre(e.target.value)}  */ onChange={handleChangeGenre} name='newGenre' value={newGenre}/>  
-            <button className='btn-add' onClick={(e) => handleAddNewGenre(e)}>+</button>
+            <Input className='input-add' type="text" onChange={handleChangeGenre} name='newGenre' value={newGenre}/>
+            <Button className='btn-add' onClick={(e) => handleAddNewGenre(e)} label="+"/>
             <p className='form-text text-add d-block'>Recuerda guardar luego de actualizar la lista de géneros para que los cambios impacten</p>
 
           </div>
@@ -221,19 +227,18 @@ return (
         {movie.platforms && movie.platforms.length > 0 ? (
             movie.platforms.map((platform, index) => {
               return (
-              <div className='platform-edit mt-3 mb-3' key={platform._id}>
+              <div className='platform-edit mt-3 mb-3' key={index}>
                 <div className='mt-2'>
-                  <label className='form-label'>Plataforma</label>
-                  <input className='form-control' type="text" name='name' onChange={(e) => handleChangePlatform(e, index)} value={platform.name} />
+                  <Input label="Plataforma" className='form-control' type="text" name='name' onChange={(e) => handleChangePlatform(e, index)} value={platform.name}/>
                 </div>
 
                 <div className='mt-2'>
-                <label className='form-label'>Link a la plataforma</label>
-                <input className='form-control' type="text"             onChange={(e) => handleChangePlatform(e, index)}  name='url' value={platform.url} />
+                <Input label="Link a la plataforma" className='form-control' type="text" onChange={(e) => handleChangePlatform(e, index)}  name='url' value={platform.url} />
+
                 <p className='form-text'>Recordá revisar que el link funcione antes de colocarlo</p>
                 </div>
 
-                <button onClick={handleEditPlatform} className='btn btn-secondary'>Guardar</button>
+                <Button onClick={handleEditPlatform} className='btn btn-secondary' label="Guardar"/>
               </div>
               );
             })
@@ -245,23 +250,20 @@ return (
         {/* Agregar nueva plataforma */}
           <div className='platform-add mt-3 mb-3'>
               <div className='mt-2'>
-                <label className='form-label'>Plataforma</label>
-                <input className='form-control' type="text" name='' onChange={handleChangePlatformName} value={newPlatformName} />
+                <Input label="Plataforma" className='form-control' type="text" name='' onChange={handleChangePlatformName} value={newPlatformName} />
               </div>
 
               <div className='mt-2'>
-              <label className='form-label'>Link a la plataforma</label>
-              <input className='form-control' type="text" onChange={handleChangePlatformUrl} name='url' value={newPlatformUrl} />
+              <Input label="Link a la plataforma" className='form-control' type="text" onChange={handleChangePlatformUrl} name='url' value={newPlatformUrl} />
 
               <p className='form-text'>Recordá revisar que el link funcione antes de colocarlo</p>
               </div>
-              <button className='btn btn-secondary' onClick={handleAddNewPlatform}>Agregar plataforma</button>
+
+              <Button  className='btn btn-secondary' onClick={handleAddNewPlatform} label="Agregar plataforma"/>
           </div>
-            
   
         </div>
-
-        <button type='submit' onClick={handleAdd} className='btn btn-primary mt-5'>Guardar</button>
+        <Button  type='submit' onClick={handleAdd} className='btn btn-primary mt-5' label="Guardar"/>
     </form>
   </>
  

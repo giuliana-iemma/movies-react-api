@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext'
 
 const Navbar = () => {
   const { user, logoutUser } = useContext(AuthContext);
+  const { auth, role} = useContext(AuthContext);
 
   console.log('user', user)
 
@@ -14,6 +15,14 @@ const Navbar = () => {
       <li className='navbar-brand'><span className='logo-text'>MoviePicker</span></li>
         <li><NavLink to="/">Inicio</NavLink></li>
         <li><NavLink to="/movies">Películas</NavLink></li>
+        <li><NavLink to="/movies">Géneros</NavLink></li>
+        {auth && role === "admin" && (
+        <>
+        <li><NavLink to="/movies">Usuarios</NavLink></li>
+        </>
+      )}
+
+
         {
           user ? (
             <>
