@@ -2,11 +2,11 @@ import PropTypes from "prop-types";
 import { forwardRef } from "react";
 
 const Textarea = forwardRef(
-  ({ label, maxLength = 100, name, placeholder, ...moreProps}, 
+  ({ label, maxLength = 100, name, placeholder, showError, errorMessage,   ...moreProps}, 
     ref
   ) => {
     return (
-      <>
+      <div>
         {label && <label className="form-label" htmlFor={name}>{label}</label>}
 
         <textarea
@@ -17,7 +17,10 @@ const Textarea = forwardRef(
           placeholder={placeholder}
           {...moreProps}
         ></textarea>
-      </>
+
+    {showError && <p className="text-danger">{errorMessage}</p>}
+
+      </div>
     );
   }
 );
@@ -30,6 +33,8 @@ Textarea.propTypes = {
   maxLength: PropTypes.number,
   placeholder: PropTypes.string,
   name: PropTypes.string.isRequired,
+  showError: PropTypes.any,
+  errorMessage: PropTypes.string
 };
 
 export { Textarea };

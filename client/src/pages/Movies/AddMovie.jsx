@@ -5,6 +5,7 @@ import {useNavigate} from 'react-router-dom'
 import { Input } from '../../components/Input'
 import { Textarea } from '../../components/Textarea'
 import { Button } from '../../components/Button'
+import { InputAdd } from '../../components/InputAdd'
 
 const AddMovie = () => {
   const navigate = useNavigate(); //Para volver a películas
@@ -17,27 +18,59 @@ const AddMovie = () => {
       platforms: [],
   })
 
+  const errorMessages = {
+    title: "Debe tener al menos dos caracteres",
+    description: "Debe tener al menos diez caracteres",
+    newGenre: "Debes colocar un género de al menos dos caracteres",
+    platformName: "Debe tener al menos dos caracteres",
+    platformURL: "Debes colocar una URL válida que comience con http:// o https://",
+    newPlatform: "Debe tener al menos dos caracteres",
+    newPlatformWeb: "Debes colocar una URL válida que comience con http:// o https://",
+  }
+
+  // console.log(errorMessages.title)
+ /*  const patterns = {
+    title: /^.{2,}$/,  // Al menos 2 caracteres
+    description: /^.{10,}$/,  // Al menos 10 caracteres
+    newGenre: /^.{2,}$/,  // Debe empezar con http:// o https:// y ser una URL válida
+    newPlatform: /^.{2,}$/,  // Al menos 2 caracteres
+    newPlatformUrl: /^(https?:\/\/[^\s$.?#].[^\s]*)$/,
+  } */
+
+  const [showError, setShowError] = useState({
+    title: false,
+    description: false,
+    newGenre: false,
+    platformName: false,
+    platformURL: false,
+    newPlatform: false,
+    newPlatformWeb: false, 
+    addNewPlatform: false,
+    editPlatform: false,
+    addGenre: false,
+  });
+
+  /* Géneros */
   const [deletedGenres, setDeletedGenres] = useState ([])
   const [newGenre, setNewGenre] = useState ('') // Estado temporal para el género nuevo
+
+  /* Plataformas */
   const [newPlatformName, setNewPlatformName] =useState(''); //Estado para el input de name de la nueva plataforma
   const [newPlatformUrl, setNewPlatformUrl] =useState('');  //Estado para el input de url de la nueva plataforma
   const [newPlatforms, setNewPlatforms] =useState([]);
+  const [deletedPlatforms, setDeletedPlatforms] = useState ([])
+
   const [error, setError] = useState("");  // Estado para manejar errores
 
-  const fetchMovieDetails = async () => {
-      try{
-         const res =  await axios.get(`http://localhost:3000/movies/${id}`, {
-              headers: { 'Authorization': `Bearer ${auth}` },
-            });
-          // console.log("DATA: ", res.data);
-          setMovie(res.data)
-          // setPlatforms(movie.platforms)
-          console.log('platforms', platforms)
-          // console.log(movie.genre)
-      } catch (err) {
-          console.log(err)
-      }
-  }
+/*   const [errors, setErrors] = useState({
+    title: "",
+    description: "",
+    newGenre: "",
+    newPlatform: "",
+    platformURL: ""
+  });  *///Errores para cada campo
+
+  const [errors, setErrors] = useState("");
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
@@ -48,29 +81,35 @@ const AddMovie = () => {
       ...prevState, //Copiamos el estado anterior
       [name]: value, //Cambiamos lo nuevo
     }));
+};
 
-    // console.log('Movie:', movie)
-  };
+const handleOnBlur  = (e, pattern) =>{
+// console.log(e.target.name)
+// console.log(e.target.pattern)
+
+const { name, value } = e.target;
+  
+if (pattern) {
+  validate(pattern, value, name, errorMessages[name]);
+}
+/* const validationErrors = validate(e.target.pattern, e.target.value, e.target.name, e.target.errorMessage) */
+// console.log(errors);
+}
 
 const handleAdd = async (e) =>{
     e.preventDefault();
-    console.log('Movie', movie)
       
     try{
         const res = await axios.post(`http://localhost:3000/movies`, movie, {
           headers: { 'Authorization': `Bearer ${auth}` },
         });
-        console.log('Peli actualizada: ', res.data);
         navigate('/movies')
-        // // setMovie(res.data)
       }catch (err){
         console.log(err)
         const errorMessage = err.response?.data?.message || 'Error al iniciar sesión. Inténtalo nuevamente.';
-            setError(errorMessage);      
+        setError(errorMessage);      
       }
   }
-
-  console.log(deletedGenres)
 
   const handleDeleteGenre = (e, genre) => {
     e.preventDefault()
@@ -83,15 +122,69 @@ const handleAdd = async (e) =>{
 
     setMovie((prevMovie) => ({
       ...prevMovie,
-      genre: prevMovie.genre.filter((g) => g._id !== genre._id), //Obtenemos todos los géneros que no sean el que quermo eliminar
+      genre: prevMovie.genre.filter((g) => g._id !== genre._id), //Obtenemos todos los géneros que no sean el que queremos eliminar
     }));
+  }
+
+  const handleDeletePlatform = (e, platform) => {
+    e.preventDefault()
+    e.stopPropagation();
+
+      // Verificar si la plataforma ya está eliminada, si no lo está, agregarla a deletedPlatforms
+  if (!deletedPlatforms.some((p) => p._id === platform._id)) {
+    setDeletedPlatforms((prevDeletedPlatforms) => [...prevDeletedPlatforms, platform]);
+  }
+
+  // Eliminar la plataforma de la lista de plataformas
+  setMovie((prevMovie) => ({
+    ...prevMovie,
+    platforms: prevMovie.platforms.filter((p) => p._id !== platform._id), // Asegúrate de que esté usando _id y no otro campo
+  }));
+
+  console.log('Plataforma eliminada:', platform);
+
   }
 
   const handleChangeGenre = async (e) =>{
     setNewGenre(e.target.value); // Actualiza el estado con el valor del input
-    console.log(newGenre); // Opcional: Verifica en consola el valor ingresado
-
+ // Opcional: Verifica en consola el valor ingresado
   } 
+
+  const validate = (pattern, target, fieldName, message) =>{
+   
+    if (!target || !pattern.test(target)) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        [fieldName]: message  // Se usa el nombre del campo como clave
+      }));
+
+      // console.log("error", fieldName);
+
+      // showError[fieldName] = true;
+      // console.log(showError[fieldName])
+      // console.log(message)
+
+      setShowError(prevState => ({
+        ...prevState,
+        [fieldName]: true
+      }));
+
+      return false;
+    } else {
+      // Si pasa la validación, se limpia el error
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        [fieldName]: "" 
+
+      }
+    ));
+      setShowError(prevState => ({
+        ...prevState,
+        [fieldName]: false
+      }));
+      return true;
+    }   
+  }
 
   const handleAddNewGenre = async (e) => {    
     e.preventDefault();
@@ -109,8 +202,8 @@ const handleAdd = async (e) =>{
       setMovie((prevMovie) => ({
         ...prevMovie,
         genre: [...prevMovie.genre, newGenreObject],
-      }));
-
+      }
+    ));
       // Limpiar el campo de entrada
       setNewGenre('');
     }
@@ -132,15 +225,28 @@ const handleAdd = async (e) =>{
 
     const newPlatformObject = {name: newPlatformName, url: newPlatformUrl}
 
-    setMovie ((prevMovie) => ({
-      ...prevMovie,
-      platforms:  [...prevMovie.platforms, newPlatformObject]
-    }))
-    console.log(newPlatforms)
-    setNewPlatformName('')
-    setNewPlatformUrl('')
+    if(!showError.newPlatform || !showError.newPlatformUrl || newPlatformName && newPlatformUrl){
+      setMovie ((prevMovie) => ({
+        ...prevMovie,
+        platforms:  [...prevMovie.platforms, newPlatformObject]
+      }))
+      console.log(newPlatforms)
+      setNewPlatformName('')
+      setNewPlatformUrl('')
+      setShowError ((prevState) => ({
+        ...prevState,
+        newPlatform: false,
+        newPlatformWeb: false,
+        addNewPlatform : false
+      }))
 
 
+    } else {
+      setShowError ((prevState) => ({
+        ...prevState,
+        addNewPlatform : true
+      }))
+    }
   }
 
   /* Editar plataformas */
@@ -176,19 +282,24 @@ return (
               name="title"
               value={movie.title}
               onChange={handleChange}
+              onBlur={(e) => handleOnBlur(e, /^.{2,}$/)}
+              errorMessage = {errorMessages.title}
+              showError = {showError.title}
               />
         </div>
 
         {/* Description */}
-        <div>
             <Textarea
               label="Descripción"
               className="form-control"
               name="description"
               value={movie.description}  
               onChange={handleChange} 
+              // pattern="/^.{10,}$/"
+              onBlur={(e) => handleOnBlur(e, /^.{10,}$/)}
+              errorMessage = {errorMessages.description}
+              showError = {showError.description}
             />
-        </div>
 
         {/* Genres */}
         <div className='mt-3'>  
@@ -212,13 +323,23 @@ return (
           )}
           
           {/* Agregar género */}
-          <div className='mt-3 container-add'>
-            <Input className='input-add' type="text" onChange={handleChangeGenre} name='newGenre' value={newGenre}/>
-            <Button className='btn-add' onClick={(e) => handleAddNewGenre(e)} label="+"/>
+            <InputAdd 
+            className='input-add' 
+            type="text" 
+            onChange={handleChangeGenre} 
+            name='newGenre' 
+            value={newGenre} 
+            // pattern="/^.{2,}$/"               
+            onBlur={handleOnBlur}
+            errorMessage = {errorMessages.newGenre}
+            showError = {showError.newGenre}
+            onClickButton = {(e) => handleAddNewGenre(e)}
+            />
+
             <p className='form-text text-add d-block'>Recuerda guardar luego de actualizar la lista de géneros para que los cambios impacten</p>
 
           </div>
-        </div>
+        {/* </div> */}
       
         {/* Platforms */}
         <div className='mt-3'>  
@@ -227,19 +348,45 @@ return (
         {movie.platforms && movie.platforms.length > 0 ? (
             movie.platforms.map((platform, index) => {
               return (
-              <div className='platform-edit mt-3 mb-3' key={index}>
+                <div className="platform-edit mt-3 mb-3" key={index}>
+
+                  <p><span>Platform: </span>{platform.name}</p>
+                  <p><span>Platform URL: </span>{platform.url}</p>
+
+                  <Button onClick={(e) => handleDeletePlatform(e, platform)}  className="btn btn-primary" label="Eliminar"/>
+                </div>
+             /*  <div className='platform-edit mt-3 mb-3' key={index}>
                 <div className='mt-2'>
-                  <Input label="Plataforma" className='form-control' type="text" name='name' onChange={(e) => handleChangePlatform(e, index)} value={platform.name}/>
+                  <Input 
+                  label="Plataforma" 
+                  className='form-control' 
+                  type="text" 
+                  name='platformName' 
+                  onChange={(e) => handleChangePlatform(e, index)} 
+                  value={platform.name}
+                  onBlur={(e) => handleOnBlur(e, /^.{2,}$/)}
+                  errorMessage = {errorMessages.platformName}
+                  showError = {showError.platformName}
+                  />
                 </div>
 
                 <div className='mt-2'>
-                <Input label="Link a la plataforma" className='form-control' type="text" onChange={(e) => handleChangePlatform(e, index)}  name='url' value={platform.url} />
+                <Input 
+                label="Link a la plataforma" 
+                className='form-control' 
+                type="text" 
+                onChange={(e) => handleChangePlatform(e, index)}  name='platformURL' 
+                value={platform.url}
+                onBlur={(e) => handleOnBlur(e, /^(https?:\/\/[^\s$.?#].[^\s]*)$/)}
+                errorMessage = {errorMessages.platformURL}
+                  showError = {showError.platformURL}
+                />
 
                 <p className='form-text'>Recordá revisar que el link funcione antes de colocarlo</p>
                 </div>
 
                 <Button onClick={handleEditPlatform} className='btn btn-secondary' label="Guardar"/>
-              </div>
+              </div> */
               );
             })
           ) : (
@@ -250,16 +397,38 @@ return (
         {/* Agregar nueva plataforma */}
           <div className='platform-add mt-3 mb-3'>
               <div className='mt-2'>
-                <Input label="Plataforma" className='form-control' type="text" name='' onChange={handleChangePlatformName} value={newPlatformName} />
+                <Input 
+                label="Plataforma" 
+                className='form-control' 
+                type="text" 
+                name='newPlatform' 
+                onChange={handleChangePlatformName} 
+                value={newPlatformName} 
+                onBlur={(e) => handleOnBlur(e, /^.{2,}$/)}
+                errorMessage = {errorMessages.newPlatform}
+                showError = {showError.newPlatform}
+                />
               </div>
 
               <div className='mt-2'>
-              <Input label="Link a la plataforma" className='form-control' type="text" onChange={handleChangePlatformUrl} name='url' value={newPlatformUrl} />
+              <Input 
+              label="Link a la plataforma" 
+              className='form-control' 
+              type="text" 
+              onChange={handleChangePlatformUrl} 
+              name='newPlatformWeb' 
+              value={newPlatformUrl} 
+              onBlur={(e) => handleOnBlur(e, /^(https?:\/\/[^\s$.?#].[^\s]*)$/)}
+              errorMessage = {errorMessages.newPlatformWeb}
+              showError = {showError.newPlatformWeb}
+              />
 
               <p className='form-text'>Recordá revisar que el link funcione antes de colocarlo</p>
               </div>
 
               <Button  className='btn btn-secondary' onClick={handleAddNewPlatform} label="Agregar plataforma"/>
+
+              {showError.addNewPlatform && <p className='text-danger'>Hay algún error en los datos. Por favor revísalos.</p>}
           </div>
   
         </div>
@@ -270,10 +439,6 @@ return (
 )}
 
 export  {AddMovie}
-
-
-
-
 
   {/* Géneros eliminados */}
           {/* Esto es algo que intenté hacer pero no logré, lo dejo para revisarlo en clase */}

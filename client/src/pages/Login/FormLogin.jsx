@@ -1,113 +1,155 @@
-import React, {useState, useContext} from 'react'
-import { LoginInput } from './components/LoginInput'
-import { Button } from '../../components/Button'
-import {useNavigate} from 'react-router-dom'
-import axios from "axios"
-import { AuthContext } from '../../context/AuthContext'
-import Cookies from 'js-cookie'
+    import  {useState, useContext} from 'react'
+    import { Input } from '../../components/Input'    
+    import { Button } from '../../components/Button'
+    import {useNavigate} from 'react-router-dom'
+    import axios from "axios"
+    import { AuthContext } from '../../context/AuthContext'
+    import Cookies from 'js-cookie'
 
-const FormLogin = () => {
-    const [values, setValues] = useState({
-        email: "",
-        password: "",
-    });
+    const FormLogin = () => {
+        const [values, setValues] = useState({
+            email: "",
+            password: "",
+        });
 
-    const [error, setError] = useState('');
+        const [error, setError] = useState('');
 
-    const navigate = useNavigate();
+        const [errors, setErrors] = useState({
+            email: '',
+            password: ''
+          }); //Errores para cada campo
 
-    const inputs = [
 
-        {
-            name: "email",
-            placeholder: "email@mail.com",
-            label: "Email",
-            type: "email",
-            errorMessage: "El mail es incorrecto",
-            required: true,
-            pattern: "'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-        },
-        {
-            name: "password",
-            placeholder: "Contraseña",
-            label: "Contraseña",
-            type: "password",
-            errorMessage: "Debe tener al menos 4 caracteres",
-            required: true,
-            pattern: "/^.{6,}$/",
+        const navigate = useNavigate(); 
+
+        const handleOnChange = (e) => {
+            setValues({...values, [e.target.name]: e.target.value});
         }
-    ]
 
-    const handleOnChange = (e) => {
-        setValues({...values, [e.target.name]: e.target.value})
-    }
+        const handleOnBlur = () => {
+            const validationErrors = validateForm(values);
+            setErrors(validationErrors);
+          };
+          
+        const navigateRegister = () => {
+            navigate("/users/register")
+        }
 
-    const navigateRegister = () => {
-        navigate("/users/register")
-    }
+        const validateForm = (values) => {
+            const newErrors = {};
+            if (!values.email || !/\S+@\S+\.\S+/.test(values.email)) {
+                //Si no hay valor escrito para email o si no coincide con el pattern
 
-    const {setUser, user, role} = useContext(AuthContext);
+                newErrors.email = 'Por favor ingrese un correo electrónico válido.';
+            }
+            if (!values.password || values.password.length < 6) {
+                //Si no hay valor escrito para password o si no coincide con el pattern
 
-    const handleLogin = async (e) =>{
-        e.preventDefault();
-        const {email, password} = values;
+                newErrors.password = 'La contraseña debe tener al menos 6 caracteres.';
+            }
+            return newErrors;
+          };
 
-        try {
-            // console.log("Logeado")
-            const res = await axios.post('http://localhost:3000/login',  { email, password });
+        const {setUser, user} = useContext(AuthContext);
 
-            console.log("RES: " , res.data);
+        const handleLogin = async (e) =>{
+            e.preventDefault();
+            const {email, password} = values;
 
-            setUser ({
-                name: res.data.name,
-                id: res.data.id,
-                email: res.data.email,
-                role: res.data.role,
-            });
+            const validationErrors = validateForm(values);
+            setErrors(validationErrors);
 
-            //Guardar Token. Expires indica cuánto de vida le doy la cookie.
-            Cookies.set('jwToken', res.data.token, {expires: 3});
+            if (Object.keys(validationErrors).length === 0) {
+                // El formulario es válido, se puede enviar
+                console.log('Formulario enviado', values);
+
+                try {
+                    // console.log("Logeado")
+                    const res = await axios.post('http://localhost:3000/login',  { email, password });
+    
+                    console.log("RES: " , res.data);
+    
+                    setUser ({
+                        name: res.data.name,
+                        id: res.data.id,
+                        email: res.data.email,
+                        role: res.data.role,
+                    });
+    
+                    //Guardar Token. Expires indica cuánto de vida le doy la cookie.
+                    Cookies.set('jwToken', res.data.token, {expires: 3});
+                    
+                    // Redirigir al home si se logea bien
+                    navigate('/');
+                } catch (err){
+                    console.log(err);
+                    const errorMessage = err.response?.data?.message || 'Error al iniciar sesión. Inténtalo nuevamente.';
+                    setError(errorMessage);        }
+              }            
+        }
+
+        if (user){
+            navigate('/')
+        }
+
+    return (
+        <div className='form-login'>
+            <h1 className='headline-brand'><span className='logo-text'>MoviePickr</span></h1>
+            <p className='subtitle'>Descubrí en qué plataformas podés ver tus películas favoritas</p>
+
+            <h2>Iniciá sesión</h2>
+            {error && <div className="alert alert-danger" role="alert">{error}</div>} {/* Mensaje de error */}
+
+            <form action="/login" >
+                    <Input
+                        name="email"
+                        label="Correo electrónico"
+                        type="email"
+                        value={values.email}
+                        onChange={handleOnChange}
+                        placeholder="Ingresa tu correo"
+                        // errorMessage={errors.email}
+                        onBlur={handleOnBlur}
+                        className="form-control"
+                    />
+
+                    <Input
+                        name="password"
+                        label="Contraseña"
+                        type="password"
+                        value={values.password}
+                        onChange={handleOnChange}
+                        placeholder="Ingresa tu contraseña"
+                        // errorMessage={errors.password}
+                        onBlur={handleOnBlur}
+                        className="form-control"
+                    />
+            </form>
+
+            <div className="error-list">
+                {Object.values(errors).length > 0 && (
+                <ul>
+                    {Object.values(errors).map((error, index) => (
+                    <li key={index}>{error}</li>
+                    ))}
+                </ul>
+                )}
+            </div>
             
-            // Redirigir al home si se logea bien
-             navigate('/');
-        } catch (err){
-            console.log(err);
-            const errorMessage = err.response?.data?.message || 'Error al iniciar sesión. Inténtalo nuevamente.';
-            setError(errorMessage);        }
-    }
-
-    if (user){
-        navigate('/')
-    }
-
-  return (
-    <div className='form-login'>
-        <h1 className='headline-brand'><span className='logo-text'>MoviePickr</span></h1>
-        <p className='subtitle'>Descubrí en qué plataformas podés ver tus películas favoritas</p>
-
-        <h2>Iniciá sesión</h2>
-        {error && <div className="alert alert-danger" role="alert">{error}</div>} {/* Mensaje de error */}
-
-        <form action="/login" >
-                {
-                    inputs.map((input) => (
-                        <LoginInput
-                        key={input.name}
-                        value={values[input.name]}
-                        handleOnChange={handleOnChange}
-                        {...input}
-                        />
-                    ))
-                }
-        </form>
-        <button type='submit' className="btn btn-primary mt-3" onClick={handleLogin}>Ingresar</button>
-       
-        <p>¿No tienes una cuenta?</p>
-        <button className='btn btn-secondary' onClick={navigateRegister}>Registrarse</button>
+            <button type='submit' className="btn btn-primary mt-3" onClick={handleLogin}>Ingresar</button>
         
-    </div>
-      
-  )
-}
+           
+            <p>¿No tienes una cuenta?</p>
+            <Button
+                className='btn btn-secondary'
+                onClick={navigateRegister}
+                label="Registrarse"
+            />
+           
+            
+        </div>
+        
+    )
+    }
 
-export {FormLogin}
+    export {FormLogin}
