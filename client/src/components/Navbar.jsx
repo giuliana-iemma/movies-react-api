@@ -15,10 +15,10 @@ const Navbar = () => {
       <li className='navbar-brand'><span className='logo-text'>MoviePicker</span></li>
         <li><NavLink to="/">Inicio</NavLink></li>
         <li><NavLink to="/movies">Películas</NavLink></li>
-        <li><NavLink to="/movies">Géneros</NavLink></li>
+        <li><NavLink to="/genres">Géneros</NavLink></li>
         {auth && role === "admin" && (
         <>
-        <li><NavLink to="/movies">Usuarios</NavLink></li>
+        <li><NavLink to="/users">Usuarios</NavLink></li>
         </>
       )}
 

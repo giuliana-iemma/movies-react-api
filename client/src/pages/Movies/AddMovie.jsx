@@ -23,7 +23,7 @@ const AddMovie = () => {
     description: "Debe tener al menos diez caracteres",
     newGenre: "Debes colocar un género de al menos dos caracteres",
     platformName: "Debe tener al menos dos caracteres",
-    platformURL: "Debes colocar una URL válida que comience con http:// o https://",
+    platformURL: "Debes colocar una URL válida que comience con http:// o https:// o www.",
     newPlatform: "Debe tener al menos dos caracteres",
     newPlatformWeb: "Debes colocar una URL válida que comience con http:// o https://",
   }
@@ -96,18 +96,22 @@ if (pattern) {
 // console.log(errors);
 }
 
-const handleAdd = async (e) =>{
+const handleAddMovie = async (e) =>{
     e.preventDefault();
       
     try{
         const res = await axios.post(`http://localhost:3000/movies`, movie, {
           headers: { 'Authorization': `Bearer ${auth}` },
         });
-        navigate('/movies')
+        navigate('/movies');
+        console.log(movie)
+        console.log("DATA: ", res.data);
+
       }catch (err){
         console.log(err)
         const errorMessage = err.response?.data?.message || 'Error al iniciar sesión. Inténtalo nuevamente.';
         setError(errorMessage);      
+        console.log(movie)
       }
   }
 
@@ -225,7 +229,7 @@ const handleAdd = async (e) =>{
 
     const newPlatformObject = {name: newPlatformName, url: newPlatformUrl}
 
-    if(!showError.newPlatform || !showError.newPlatformUrl || newPlatformName && newPlatformUrl){
+    if(!showError.newPlatform && !showError.newPlatformWeb && newPlatformName && newPlatformUrl){
       setMovie ((prevMovie) => ({
         ...prevMovie,
         platforms:  [...prevMovie.platforms, newPlatformObject]
@@ -270,9 +274,10 @@ const handleAdd = async (e) =>{
 
 return (
   <>
+  
    <h1>Agregar nueva película</h1>
 
-    <form onSubmit={handleAdd}> 
+    <form onSubmit={handleAddMovie} action='post'> 
         {/* Title */}
         <div>
             <Input 
@@ -418,7 +423,7 @@ return (
               onChange={handleChangePlatformUrl} 
               name='newPlatformWeb' 
               value={newPlatformUrl} 
-              onBlur={(e) => handleOnBlur(e, /^(https?:\/\/[^\s$.?#].[^\s]*)$/)}
+              onBlur={(e) => handleOnBlur(e, /^(https?:\/\/|www\.)[^\s$.?#].[^\s]*$/)}
               errorMessage = {errorMessages.newPlatformWeb}
               showError = {showError.newPlatformWeb}
               />
@@ -432,7 +437,7 @@ return (
           </div>
   
         </div>
-        <Button  type='submit' onClick={handleAdd} className='btn btn-primary mt-5' label="Guardar"/>
+        <Button  type='submit' onClick={handleAddMovie} className='btn btn-primary mt-5' label="Guardar"/>
     </form>
   </>
  

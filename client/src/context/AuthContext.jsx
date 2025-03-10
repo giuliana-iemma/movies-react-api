@@ -42,7 +42,7 @@ export const AuthContextProvider = ({ children }) => {
     const logoutUser = () => {
         setUser(null);
         Cookies.remove('jwToken')
-        navigate('/users/login')
+        navigate('/users/login');
     }
 
     return (

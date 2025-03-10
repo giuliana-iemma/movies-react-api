@@ -1,24 +1,24 @@
 import {useEffect, useState, useContext} from 'react'
-import { CardMovie } from '../../components/CardMovie'
+import { CardUser } from '../../components/CardUser'
 import axios from 'axios'
 import { AuthContext } from '../../context/AuthContext'
 import {Link} from "react-router-dom"
 import {useNavigate} from 'react-router-dom'
 
-const Movies = () => {
+const Users = () => {
   const navigate = useNavigate(); //Para volver a películas
   
   // const { id } = useParams();
   const { auth, role, loading } = useContext(AuthContext);
-  const [movies, setMovies] = useState([]); // De base es un array donde entrarán las películas
+  const [users, setUsers] = useState([]); // De base es un array donde entrarán las películas
 
-  const fetchMovies = async () => {
+  const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/movies', {
+      const res = await axios.get('http://localhost:3000/users', {
         headers: { 'Authorization': `Bearer ${auth}` },
       });
 
-      setMovies(res.data); // Guardamos las películas
+      setUsers(res.data); // Guardamos las películas
     } catch (err) {
       console.log('Error al obtener películas: ', err);
     }
@@ -29,20 +29,21 @@ const Movies = () => {
     if (!auth) {
       navigate('/users/login'); // Redirect to login if the user is not authenticated
     } else {
-      fetchMovies();  // Fetch movies only if authenticated
+      fetchUsers();  // Fetch movies only if authenticated
     }
   }, [auth]);
 
-  const deleteMovie = async (movieId) => {
-    console.log('Borrar', movieId)
+  const deleteUser = async (userId) => {
+    console.log('Borrar', userId)
 
     try{
-      const res = await axios.delete(`http://localhost:3000/movies/${movieId}`, {
+      const res = await axios.delete(`http://localhost:3000/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${auth}` },
       });
 
-      fetchMovies();
-      navigate('/movies');
+      fetchUsers();
+
+      // navigate('/users');
       // console.log(res.data)
     }catch (error){
       console.log('Error al eliminar la película: ' , error)
@@ -56,26 +57,22 @@ const Movies = () => {
     }
     
   return (
-    <div className="movies-container">
-       {auth && role === "admin" && (
-        <>
-        <h4 className='mt-3'>Funciones de administrador</h4>
-        <Link className='btn btn-primary' to={`/movies/add`}>Agregar nueva película</Link>
-        </>
-      )}
+    <div className="users-container">
+      
+      {users.length > 0 ? (
+        users.map((user) => (
+          <div key={user._id} className='mt-3'>
+            <CardUser
+              name={user.name}
+              lastname={user.lastname}
+              email={user.email}
+              role={user.role}
 
-      {movies.length > 0 ? (
-        movies.map((movie) => (
-          <div key={movie._id} className='mt-3'>
-            <CardMovie
-              title={movie.title}
-              description={movie.description}
-              genre={movie.genre.map((genre) => genre.name).join(", ")}
             />
-            <div className='buttons-movie'>
-            <Link className='btn btn-primary' to={`/movies/${movie._id}`}>Ver detalle</Link>
+            <div className='buttons-users'>
+            <Link className='btn btn-primary' to={`/users/${user._id}/edit`}>Editar</Link>
             {role === 'admin' && (
-              <button className='btn btn-danger' onClick={()=>deleteMovie(movie._id)}>Eliminar película</button>
+              <button className='btn btn-danger' onClick={()=>deleteUser(user._id)}>Eliminar usuario</button>
             )}
             </div>
           </div>
@@ -92,5 +89,5 @@ const Movies = () => {
 }
 
 
-export  {Movies}
+export  {Users}
 
