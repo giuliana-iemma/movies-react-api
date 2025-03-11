@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext'
 import {useNavigate} from 'react-router-dom'
 import { Button } from '../../components/Button'
 
-const EditGenre = () => {
+const AddGenre = () => {
   const navigate = useNavigate(); //Para volver a películas
   const { auth, role } = useContext(AuthContext); //Verificamos token
 
@@ -17,22 +17,6 @@ const EditGenre = () => {
       description: "",
   })
   
-  const fetchGenreDetails = async () => {
-      try{
-         const res =  await axios.get(`https://nodejs-api-o7k7.onrender.com/genres/${id}`, {
-              headers: { 'Authorization': `Bearer ${auth}` },
-            });
-          // console.log("DATA: ", res.data);
-          setGenre(res.data)
-      } catch (err) {
-          console.log(err)
-      }
-  }
-
-  useEffect(() => {
-      fetchGenreDetails()
-  }, [id])
-
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
     //e contiene toda la información del campo. Lo desestructuramos para extraer name y value
@@ -46,14 +30,14 @@ const EditGenre = () => {
     console.log(e.target)
   };
 
-    const handleEdit = async (e) =>{
+    const handleAdd = async (e) =>{
     e.preventDefault();
       // console.log("Editando");
       try{
-        const res = await axios.put(`https://nodejs-api-o7k7.onrender.com/genres/${id}`, genre, {
+        const res = await axios.post(`https://nodejs-api-o7k7.onrender.com/genres`, genre, {
           headers: { 'Authorization': `Bearer ${auth}` },
         });
-        console.log('Género actualizado: ', res.data);
+        console.log('Género agregado: ', res.data);
         navigate('/genres')
       }catch (err){
         console.log(err)
@@ -65,9 +49,9 @@ const EditGenre = () => {
   }
 return (
   <>
-   <h1>Editando {genre.name}</h1>
+   <h1>Agregar nuevo género</h1>
 
-    <form onSubmit={handleEdit}> 
+    <form onSubmit={handleAdd}> 
         {/* Title */}
         <div>
             <label className='form-label'>Género</label>
@@ -85,32 +69,12 @@ return (
           />
         </div>
 
-        <button type='submit' onClick={handleEdit} className='btn btn-primary mt-5'>Guardar</button>
+        <button type='submit' onClick={handleAdd} className='btn btn-primary mt-5'>Guardar</button>
     </form>
   </>
  
 )}
 
-export  {EditGenre}
+export  {AddGenre}
 
 
-
-
-
-  {/* Géneros eliminados */}
-          {/* Esto es algo que intenté hacer pero no logré, lo dejo para revisarlo en clase */}
-          {/* {
-            deletedGenres.length > 0 && (
-              <div>
-                {deletedGenres.map((genre) => (
-                  <div key={genre._id} className='genre-tag d-flex flex-row removed'>
-                    <p className='d-bock genre-tag-text'>{genre.name}</p>
-                    <button
-                    onClick={() => handleAddGenre(genre)}
-                    className="genre-btn"
-                  > + </button>
-                  </div>  
-                ))}
-              </div>
-            )
-          } */}
